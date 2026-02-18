@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tax Invoice - Angkobodia Logistics Co., Ltd</title>
+  <style>
+    @page {
+      size: A4;
+      margin: 15mm 12mm 5mm 12mm;
+    }
+
+    body {
+      font-family: "Khmer OS Battambang", Arial, sans-serif;
+      width: 205mm;
+      margin: 0 auto;
+      color: #000;
+      font-size: 13px;
+      line-height: 1.2;
+      background: #f5f5f5;
+      padding: 5mm 0;
+    }
+
+    .invoice-container {
+      background: white;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      padding: 5mm;
+      margin: 0 auto;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 10px;
+      position: running(header);
+    }
+
+    .header img {
+      width: 100%;
+      max-height: 160px;
+      object-fit: contain;
+      display: block;
+    }
+
+    /* When header is hidden, collapse space */
+    .header.hidden {
+      display: none;
+    }
+
+    @page {
+      @top-center {
+        content: element(header);
+      }
+    }
+
+    .title {
+      text-align: center;
+      margin: 3px 0;
+    }
+
+    .title h2 {
+      font-size: 17px;
+      margin: 0;
+      font-weight: bold;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px;
+    }
+
+    th, td {
+      border: 1px solid #000;
+      padding: 3px 4px;
+      vertical-align: top;
+    }
+
+    .no-border td {
+      border: none;
+      padding: 2px 0;
+    }
+
+    .invoice-info {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    .invoice-info .left {
+      width: 60%;
+      border: 1px solid #000;
+      padding: 6px 8px;
+      border-radius: 2px;
+    }
+
+    .invoice-info .right {
+      width: 35%;
+    }
+
+    .invoice-meta td {
+      vertical-align: top;
+      padding: 2px 6px;
+    }
+
+    .kh-label {
+      font-family: "Khmer OS Battambang", Arial, sans-serif;
+      font-size: 13px;
+      font-weight: bold;
+      margin-bottom: -2px;
+    }
+
+    .meta-value {
+      text-align: left;
+      font-size: 13px;
+      padding-left: 10px;
+      font-weight: normal;
+      position: relative;
+    }
+
+    .meta-value strong {
+      font-weight: bold;
+      font-size: 13px;
+    }
+
+    .dotted-line {
+      border-bottom: 2px dotted #000;
+      width: 100%;
+      margin-top: 2px;
+    }
+
+    .section {
+      margin-bottom: 6px;
+    }
+
+    .right {
+      text-align: right;
+    }
+
+    .bold {
+      font-weight: bold;
+    }
+
+    .exchange {
+      margin-top: 6px;
+      font-size: 11px;
+    }
+
+    .totals {
+      width: 45%;
+      float: right;
+      margin-top: 2px;
+      margin-bottom: 50px;
+      border-collapse: collapse;
+    }
+
+    .totals td {
+      border: none;
+      padding: 3px 0;
+    }
+
+    .totals .bold td {
+      border-top: 2px solid #000;
+    }
+
+    .footer {
+      clear: both;
+      margin-top: 20px;
+      page-break-inside: avoid;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .signature {
+      width: 45%;
+      text-align: center;
+    }
+
+    .signature-line {
+      border-top: 1px solid #000;
+      width: 80%;
+      margin: 35px auto 5px;
+    }
+
+    .note {
+      font-size: 9px;
+      margin-top: 0px;
+      clear: both;
+    }
+
+    /* ── Toolbar (print buttons + header toggle) ── */
+    .toolbar {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      display: flex;
+      gap: 8px;
+      z-index: 1000;
+    }
+
+    .toolbar button {
+      padding: 10px 18px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      font-family: Arial, sans-serif;
+    }
+
+    .print-button {
+      background: #007bff;
+      color: white;
+    }
+
+    .print-button:hover { background: #0056b3; }
+
+    .toggle-header-button {
+      background: #28a745;
+      color: white;
+    }
+
+    .toggle-header-button:hover { background: #1e7e34; }
+    .toggle-header-button.header-off { background: #6c757d; }
+    .toggle-header-button.header-off:hover { background: #545b62; }
+
+
+
+    @media print {
+      body {
+        background: white;
+        padding: 0;
+      }
+
+      .invoice-container {
+        box-shadow: none;
+        padding: 0;
+      }
+
+      /* Hide all screen-only controls */
+      .toolbar {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Toolbar: Print + Toggle Header -->
+  <div class="toolbar">
+    <button class="print-button" onclick="window.print()">🖨️ Print Invoice</button>
+    <button class="toggle-header-button" id="toggleHeaderBtn" onclick="toggleHeader()">🙈 Hide Header</button>
+  </div>
+
+
+  <div class="invoice-container">
+    <!-- Header -->
+    <div class="header" id="invoiceHeader">
+      <img id="headerImg"
+           src="https://raw.githubusercontent.com/kounsokong/tax_invoice/refs/heads/main/cheang_long_header.jpeg"
+           alt="Company Header">
+    </div>
+
+    <!-- Title -->
+    <div class="title">
+      <h2>វិក្កយបត្រពន្ធ<br>TAX INVOICE</h2>
+    </div>
+
+    <!-- Invoice Info -->
+    <div class="invoice-info">
+      <!-- Left: Customer Info -->
+      <div class="left">
+        <table class="no-border">
+          <tr><td>ឈ្មោះក្រុមហ៊ុន៖ <span id="customer_name_kh"></span></td></tr>
+          <tr><td>Customer: <span id="customer_name"></span></td></tr>
+          <tr><td>អាសយដ្ឋាន៖ <span id="address_kh"></span></td></tr>
+          <tr><td>Address: <span id="address"></span></td></tr>
+          <tr><td>លេខទូរស័ព្ទ/TEL: <span id="phone"></span></td></tr>
+          <tr><td>លេខអតប (VAT TIN): <span id="vat_tin"></span></td></tr>
+        </table>
+      </div>
+
+      <!-- Right: Invoice Info -->
+      <div class="right">
+        <table class="no-border invoice-meta" style="float: right;">
+          <tr>
+            <td>
+              <div class="kh-label">លេខវិក្កយបត្រ</div>
+              <div>Invoice No:</div>
+            </td>
+            <td class="meta-value">
+              <strong id="invoice_no"></strong>
+              <div class="dotted-line"></div>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <div class="kh-label">កាលបរិច្ឆេទ</div>
+              <div>Date:</div>
+            </td>
+            <td class="meta-value">
+              <span id="date"></span>
+              <div class="dotted-line"></div>
+            </td>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- Items Table -->
+    <table>
+      <thead>
+        <tr>
+          <th style="width: 5%; text-align: center;">ល.រ<br>No</th>
+          <th style="width: 45%;">បរិយាយមុខទំនិញ<br>Description</th>
+          <th style="width: 15%; text-align: center;">បរិមាណ<br>Quantity</th>
+          <th style="width: 12%;">តម្លៃឯកតា<br>Unit Price</th>
+          <th style="width: 13%;">តម្លៃសរុប<br>Amount (USD)</th>
+        </tr>
+      </thead>
+      <tbody id="items_tbody">
+        <!-- Items will be inserted here -->
+      </tbody>
+    </table>
+
+    <!-- Totals -->
+    <table class="totals">
+      <tr>
+        <td>សរុប / Subtotal:</td>
+        <td class="right" id="subtotal"></td>
+      </tr>
+      <tr>
+        <td>អាករលើតម្លៃបន្ថែម (VAT 10%):</td>
+        <td class="right" id="vat_amount"></td>
+      </tr>
+      <tr class="bold">
+        <td>សរុបរួមជាដុល្លារ / Grand Total USD:</td>
+        <td class="right" id="grand_total"></td>
+      </tr>
+      <tr>
+        <td>សរុបរួមជារៀល / Grand Total KHR:</td>
+        <td class="right" id="grand_total_khr"></td>
+      </tr>
+    </table>
+
+    <div class="exchange">
+      អត្រាប្តូរប្រាក់ / Exchange Rate: <span id="exchange_rate"></span>
+    </div>
+
+    <!-- Signatures -->
+    <div class="footer">
+      <div class="signature">
+        <div class="signature-line"></div>
+        <p>Customer's Signature & Name<br>ហត្ថលេខា និងឈ្មោះអតិថិជន</p>
+      </div>
+
+      <div class="signature">
+        <div class="signature-line"></div>
+        <p>Seller's Signature & Name<br>ហត្ថលេខា និងឈ្មោះអ្នកលក់</p>
+      </div>
+    </div>
+
+    <div class="note">
+      សម្គាល់៖ ច្បាប់ដើមសម្រាប់អ្នកទិញ ច្បាប់ចម្លងសម្រាប់អ្នកលក់<br>
+      Note: Original Invoice for Customer, Copied Invoice for Seller.
+    </div>
+  </div>
+
+  <script>
+    // ── URL parameter parser ──────────────────────────────────────────────────
+    function getUrlParams() {
+      const params = new URLSearchParams(window.location.search);
+      const data = {};
+      for (const [key, value] of params) {
+        data[key] = decodeURIComponent(value);
+      }
+      return data;
+    }
+
+    // ── Populate invoice from URL params ─────────────────────────────────────
+    function populateInvoice() {
+      const data = getUrlParams();
+
+      // Simple text fields
+      const fields = [
+        'customer_name_kh', 'customer_name', 'address_kh', 'address',
+        'phone', 'vat_tin', 'invoice_no', 'date', 'lot_no', 'flight_date',
+        'factory_name', 'declaration', 'vessel', 'port', 'cargo_type',
+        'container', 'hbl', 'etd', 'qty', 'invpl', 'subtotal',
+        'vat_amount', 'grand_total', 'grand_total_khr', 'exchange_rate'
+      ];
+
+      fields.forEach(field => {
+        const element = document.getElementById(field);
+        if (element && data[field]) {
+          element.textContent = data[field];
+        }
+      });
+
+      // ── Dynamic header image via URL param "header_img" ───────────────────
+      if (data.header_img) {
+        setHeaderImage(data.header_img);
+      }
+
+      // ── Line items ────────────────────────────────────────────────────────
+      const tbody = document.getElementById('items_tbody');
+      tbody.innerHTML = '';
+
+      if (data.items) {
+        try {
+          const items = JSON.parse(data.items);
+          items.forEach((item, index) => addItemRow(index + 1, item));
+        } catch (e) {
+          console.error('Error parsing items:', e);
+        }
+      } else {
+        const item = {
+          no: data.no || '1',
+          item_name: data.item_name || '',
+          item_name_kh: data.item_name_kh || '',
+          remarks: data.remarks || '',
+          qty: data.item_qty || '',
+          rate: data.rate || '',
+          amount: data.amount || ''
+        };
+        addItemRow(item.no, item);
+      }
+    }
+
+    function addItemRow(no, item) {
+      const tbody = document.getElementById('items_tbody');
+      const row = tbody.insertRow();
+      row.innerHTML = `
+        <td style="text-align: center;">${no}</td>
+        <td>${item.item_name} ${item.item_name_kh || ''}</td>
+        <td style="text-align: center;">${item.qty || ''}</td>
+        <td class="right">${item.rate || ''}</td>
+        <td class="right">${item.amount || ''}</td>
+      `;
+    }
+
+    // ── Header image helpers ──────────────────────────────────────────────────
+    /**
+     * Set the header <img> src to the given URL.
+     * @param {string} url
+     */
+    function setHeaderImage(url) {
+      if (url && url.trim()) {
+        document.getElementById('headerImg').src = url.trim();
+      }
+    }
+
+    // ── Show / Hide header toggle ─────────────────────────────────────────────
+    let headerVisible = true;
+
+    function toggleHeader() {
+      const header = document.getElementById('invoiceHeader');
+      const btn    = document.getElementById('toggleHeaderBtn');
+
+      headerVisible = !headerVisible;
+
+      if (headerVisible) {
+        header.classList.remove('hidden');
+        btn.textContent = '🙈 Hide Header';
+        btn.classList.remove('header-off');
+      } else {
+        header.classList.add('hidden');
+        btn.textContent = '👁️ Show Header';
+        btn.classList.add('header-off');
+      }
+    }
+
+    // ── Init ──────────────────────────────────────────────────────────────────
+    window.onload = populateInvoice;
+  </script>
+</body>
+</html>
